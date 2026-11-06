@@ -1,20 +1,32 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+require("dotenv").config();
+
+const photoRoutes = require("./routes/photoRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*"
+}));
+
 app.use(express.json());
 
-//mongodb connection
-mongoose.connect("mongodb+srv://toxic:toxic008@cluster0.llpmie2.mongodb.net/photogallery")
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log(err));
+app.use("/api/photos", photoRoutes);
 
-//routes
-app.use("/api/photos", require("./routes/photoRoutes"));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully");
 
-app.listen(5000, () => {
-    console.log("Server running on port 5000");
-});
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error);
+    process.exit(1);
+  });
