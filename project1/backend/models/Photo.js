@@ -11,13 +11,24 @@ const photoSchema = new mongoose.Schema({
     description: {
         type: String,
         default: "",
+        trim: true,
         maxlength: 500
     },
 
     imageUrl: {
         type: String,
-        required: true
+        default: "",
+        trim: true
+    },
+
+    imageId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
     }
 });
+
+photoSchema.path("imageUrl").validate(function () {
+    return Boolean(this.imageUrl || this.imageId);
+}, "An image URL or uploaded image is required.");
 
 module.exports = mongoose.model("Photo", photoSchema);

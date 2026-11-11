@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
@@ -10,10 +10,16 @@ function App() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [imageFile, setImageFile] = useState(null);
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const fileInputRef = useRef(null);
+
+    const getImageSrc = (photo) => {
+        return photo.imageId ? `${API}/${photo._id}/image` : photo.imageUrl;
+    };
 
     //read photos
     const getPhotos = useCallback(async () => {
@@ -33,17 +39,38 @@ function App() {
         getPhotos();
     }, [getPhotos]);
 
+    const resetForm = () => {
+        setTitle("");
+        setDescription("");
+        setImageUrl("");
+        setImageFile(null);
+        setEditId(null);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
     //create and update 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setMessage("");
 
-        const photoData = {
-            title: title.trim(),
-            description: description.trim(),
-            imageUrl: imageUrl.trim()
-        };
+        if (!editId && !imageFile && !imageUrl.trim()) {
+            setError("Choose an image or enter an image URL.");
+            return;
+        }
+
+        const photoData = new FormData();
+        photoData.append("title", title.trim());
+        photoData.append("description", description.trim());
+
+        if (imageFile) {
+            photoData.append("image", imageFile);
+        } else if (imageUrl.trim()) {
+            photoData.append("imageUrl", imageUrl.trim());
+        }
 
         try {
             if (editId) {
@@ -54,10 +81,7 @@ function App() {
                 setMessage("Photo added.");
             }
 
-            setTitle("");
-            setDescription("");
-            setImageUrl("");
-            setEditId(null);
+            resetForm();
             await getPhotos();
         } catch (err) {
             setError(err.response?.data?.message || "Couldn't save the photo. Please try again.");
@@ -68,10 +92,16 @@ function App() {
     const handleEdit = (photo) => {
         setTitle(photo.title);
         setDescription(photo.description || "");
-        setImageUrl(photo.imageUrl);
+        setImageUrl(photo.imageUrl || "");
+        setImageFile(null);
         setEditId(photo._id);
         setMessage("");
         setError("");
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -88,13 +118,6 @@ function App() {
         } catch (err) {
             setError(err.response?.data?.message || "Couldn't delete the photo. Please try again.");
         }
-    };
-
-    const cancelEdit = () => {
-        setTitle("");
-        setDescription("");
-        setImageUrl("");
-        setEditId(null);
     };
 
     return (
@@ -122,18 +145,36 @@ function App() {
 
                 <input
                     type="url"
-                    placeholder="Enter Image URL"
+                    placeholder="Enter Image URL (optional if uploading a file)"
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    required
+                    onChange={(e) => {
+                        setImageUrl(e.target.value);
+                        if (e.target.value) setImageFile(null);
+                    }}
                 />
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={(e) => {
+                        const file = e.target.files[0] || null;
+                        setImageFile(file);
+                        if (file) setImageUrl("");
+                    }}
+                />
+
+                {imageFile && <p className="file-name">Selected: {imageFile.name}</p>}
+                {editId && !imageUrl && !imageFile && (
+                    <p className="file-name">Leave both image fields empty to keep the current image.</p>
+                )}
 
                 <div className="form-actions">
                     <button type="submit">
                         {editId ? "Update Photo" : "Add Photo"}
                     </button>
                     {editId && (
-                        <button type="button" className="secondary" onClick={cancelEdit}>
+                        <button type="button" className="secondary" onClick={resetForm}>
                             Cancel
                         </button>
                     )}
@@ -151,7 +192,7 @@ function App() {
                 <div className="gallery">
                     {photos.map((photo) => (
                         <div className="card" key={photo._id}>
-                            <img src={photo.imageUrl} alt={photo.title} loading="lazy" />
+                            <img src={getImageSrc(photo)} alt={photo.title} loading="lazy" />
                             <h3>{photo.title}</h3>
                             {photo.description && <p className="card-description">{photo.description}</p>}
                             <div className="card-actions">
