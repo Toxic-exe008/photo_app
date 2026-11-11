@@ -121,7 +121,7 @@ router.get("/:id/image", async (req, res) => {
             res.set({
                 "Content-Type": file.contentType || file.metadata?.contentType || "application/octet-stream",
                 "Content-Length": file.length,
-                "Cache-Control": "public, max-age=86400",
+                "Cache-Control": "no-store",
                 "X-Content-Type-Options": "nosniff"
             });
         });
