@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Photo = require("../models/Photo");
 
+//create photo
 router.post("/", async (req, res) => {
     try {
         const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
@@ -19,6 +20,7 @@ router.post("/", async (req, res) => {
     }
 });
 
+//read data
 router.get("/", async (req, res) => {
     try {
         const photos = await Photo.find();
@@ -28,6 +30,7 @@ router.get("/", async (req, res) => {
     }
 });
 
+//update photo
 router.put("/:id", async (req, res) => {
     try {
         const updates = {};
@@ -54,6 +57,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
+//delete photo
 router.delete("/:id", async (req, res) => {
     try {
         const photo = await Photo.findByIdAndDelete(req.params.id);

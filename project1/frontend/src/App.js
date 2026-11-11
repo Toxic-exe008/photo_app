@@ -14,6 +14,7 @@ function App() {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 
+    //read photos
     const getPhotos = useCallback(async () => {
         try {
             setLoading(true);
@@ -31,6 +32,7 @@ function App() {
         getPhotos();
     }, [getPhotos]);
 
+    //create and update 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -56,6 +58,7 @@ function App() {
         }
     };
 
+    //edit photo
     const handleEdit = (photo) => {
         setTitle(photo.title);
         setImageUrl(photo.imageUrl);
@@ -65,6 +68,7 @@ function App() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    //delete photo
     const handleDelete = async (id) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this photo?");
 

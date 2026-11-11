@@ -32,6 +32,7 @@ app.get("/health", (req, res) => {
     });
 });
 
+//routes
 app.use("/api/photos", photoRoutes);
 
 async function startServer() {
@@ -41,6 +42,7 @@ async function startServer() {
     }
 
     try {
+        //mongodb connection
         await mongoose.connect(process.env.MONGO_URI, {
             serverSelectionTimeoutMS: 10000
         });
