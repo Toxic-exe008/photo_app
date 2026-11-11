@@ -15,7 +15,9 @@ const allowedOrigins = (process.env.FRONTEND_URL || "")
 
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        const netlifyPreview = /^https:\/\/[a-z0-9-]+--photogallery-myapp\.netlify\.app$/i.test(origin || "");
+
+        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin) || netlifyPreview) {
             return callback(null, true);
         }
 

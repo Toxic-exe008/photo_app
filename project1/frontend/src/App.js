@@ -209,6 +209,7 @@ function App() {
                             }}
                         />
                     </div>
+                    <p className="file-help">JPEG, PNG, WebP or GIF. Up to 10 MB per image.</p>
 
                     {imageFile && <p className="file-name">Selected: {imageFile.name}</p>}
                     {editId && !imageUrl && !imageFile && (

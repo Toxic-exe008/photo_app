@@ -41,7 +41,8 @@ function saveImage(file) {
         const uploadStream = getBucket().openUploadStream(file.originalname, {
             contentType: file.mimetype,
             metadata: {
-                originalName: file.originalname
+                originalName: file.originalname,
+                contentType: file.mimetype
             }
         });
 
@@ -118,9 +119,10 @@ router.get("/:id/image", async (req, res) => {
 
         downloadStream.on("file", (file) => {
             res.set({
-                "Content-Type": file.contentType || "application/octet-stream",
+                "Content-Type": file.contentType || file.metadata?.contentType || "application/octet-stream",
                 "Content-Length": file.length,
-                "Cache-Control": "public, max-age=86400"
+                "Cache-Control": "public, max-age=86400",
+                "X-Content-Type-Options": "nosniff"
             });
         });
 
