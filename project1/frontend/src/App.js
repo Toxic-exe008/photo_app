@@ -12,6 +12,8 @@ function App() {
     const [imageUrl, setImageUrl] = useState("");
     const [imageFile, setImageFile] = useState(null);
     const [editId, setEditId] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
@@ -38,6 +40,24 @@ function App() {
     useEffect(() => {
         getPhotos();
     }, [getPhotos]);
+
+    useEffect(() => {
+        if (!selectedPhoto) return;
+
+        const closeOnEscape = (event) => {
+            if (event.key === "Escape") {
+                setSelectedPhoto(null);
+            }
+        };
+
+        document.addEventListener("keydown", closeOnEscape);
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.removeEventListener("keydown", closeOnEscape);
+            document.body.style.overflow = "";
+        };
+    }, [selectedPhoto]);
 
     const resetForm = () => {
         setTitle("");
@@ -120,92 +140,155 @@ function App() {
         }
     };
 
+    const filteredPhotos = photos.filter((photo) =>
+        photo.title.toLowerCase().includes(searchTerm.trim().toLowerCase())
+    );
+
     return (
-        <div className="container">
-            <h1>My Photo Gallery</h1>
-            <p className="subtitle">Add your photos and keep them all in one place.</p>
-
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Enter Photo Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    maxLength="100"
-                    required
-                />
-
-                <textarea
-                    placeholder="Add a description (optional)"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    maxLength="500"
-                    rows="3"
-                />
-
-                <input
-                    type="url"
-                    placeholder="Enter Image URL (optional if uploading a file)"
-                    value={imageUrl}
-                    onChange={(e) => {
-                        setImageUrl(e.target.value);
-                        if (e.target.value) setImageFile(null);
-                    }}
-                />
-
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    onChange={(e) => {
-                        const file = e.target.files[0] || null;
-                        setImageFile(file);
-                        if (file) setImageUrl("");
-                    }}
-                />
-
-                {imageFile && <p className="file-name">Selected: {imageFile.name}</p>}
-                {editId && !imageUrl && !imageFile && (
-                    <p className="file-name">Leave both image fields empty to keep the current image.</p>
-                )}
-
-                <div className="form-actions">
-                    <button type="submit">
-                        {editId ? "Update Photo" : "Add Photo"}
-                    </button>
-                    {editId && (
-                        <button type="button" className="secondary" onClick={resetForm}>
-                            Cancel
-                        </button>
-                    )}
+        <div className="app">
+            <header className="navbar">
+                <div className="nav-inner">
+                    <a className="brand" href="/">My Photo Gallery</a>
+                    <div className="search-box">
+                        <input
+                            type="search"
+                            placeholder="Search by title..."
+                            aria-label="Search photos by title"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
-            </form>
+            </header>
 
-            {error && <p className="message error">{error}</p>}
-            {message && <p className="message success">{message}</p>}
+            <main className="container">
+                <section className="intro">
+                    <h1>Your photos</h1>
+                    <p className="subtitle">Add your photos and keep them all in one place.</p>
+                </section>
 
-            {loading ? (
-                <p className="empty-state">Loading photos...</p>
-            ) : photos.length === 0 ? (
-                <p className="empty-state">No photos yet. Add one using the form above.</p>
-            ) : (
-                <div className="gallery">
-                    {photos.map((photo) => (
-                        <div className="card" key={photo._id}>
-                            <img src={getImageSrc(photo)} alt={photo.title} loading="lazy" />
-                            <h3>{photo.title}</h3>
-                            {photo.description && <p className="card-description">{photo.description}</p>}
-                            <div className="card-actions">
-                                <button onClick={() => handleEdit(photo)}>Edit</button>
+                <form className="photo-form" onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Enter Photo Title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength="100"
+                        required
+                    />
+
+                    <textarea
+                        placeholder="Add a description (optional)"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        maxLength="500"
+                        rows="3"
+                    />
+
+                    <input
+                        type="url"
+                        placeholder="Enter Image URL (optional if uploading a file)"
+                        value={imageUrl}
+                        onChange={(e) => {
+                            setImageUrl(e.target.value);
+                            if (e.target.value) setImageFile(null);
+                        }}
+                    />
+
+                    <div className="file-field">
+                        <label htmlFor="photo-file">Or choose an image from your device</label>
+                        <input
+                            id="photo-file"
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={(e) => {
+                                const file = e.target.files[0] || null;
+                                setImageFile(file);
+                                if (file) setImageUrl("");
+                            }}
+                        />
+                    </div>
+
+                    {imageFile && <p className="file-name">Selected: {imageFile.name}</p>}
+                    {editId && !imageUrl && !imageFile && (
+                        <p className="file-name">Leave both image fields empty to keep the current image.</p>
+                    )}
+
+                    <div className="form-actions">
+                        <button type="submit">
+                            {editId ? "Update Photo" : "Add Photo"}
+                        </button>
+                        {editId && (
+                            <button type="button" className="secondary" onClick={resetForm}>
+                                Cancel
+                            </button>
+                        )}
+                    </div>
+                </form>
+
+                {error && <p className="message error">{error}</p>}
+                {message && <p className="message success">{message}</p>}
+
+                {loading ? (
+                    <p className="empty-state">Loading photos...</p>
+                ) : photos.length === 0 ? (
+                    <p className="empty-state">No photos yet. Add one using the form above.</p>
+                ) : filteredPhotos.length === 0 ? (
+                    <p className="empty-state">No photos found for "{searchTerm}".</p>
+                ) : (
+                    <div className="gallery">
+                        {filteredPhotos.map((photo) => (
+                            <div className="card" key={photo._id}>
                                 <button
-                                    className="delete"
-                                    onClick={() => handleDelete(photo._id)}
+                                    type="button"
+                                    className="photo-image"
+                                    onClick={() => setSelectedPhoto(photo)}
+                                    aria-label={`Preview ${photo.title}`}
                                 >
-                                    Delete
+                                    <img src={getImageSrc(photo)} alt={photo.title} loading="lazy" />
                                 </button>
+                                <h3>{photo.title}</h3>
+                                {photo.description && <p className="card-description">{photo.description}</p>}
+                                <div className="card-actions">
+                                    <button type="button" onClick={() => handleEdit(photo)}>Edit</button>
+                                    <button
+                                        type="button"
+                                        className="delete"
+                                        onClick={() => handleDelete(photo._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+            </main>
+
+            {selectedPhoto && (
+                <div className="preview-backdrop" onClick={() => setSelectedPhoto(null)}>
+                    <div
+                        className="preview-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={selectedPhoto.title}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="preview-close"
+                            aria-label="Close preview"
+                            onClick={() => setSelectedPhoto(null)}
+                        >
+                            ×
+                        </button>
+                        <img src={getImageSrc(selectedPhoto)} alt={selectedPhoto.title} />
+                        <div className="preview-details">
+                            <h2>{selectedPhoto.title}</h2>
+                            {selectedPhoto.description && <p>{selectedPhoto.description}</p>}
                         </div>
-                    ))}
+                    </div>
                 </div>
             )}
         </div>
