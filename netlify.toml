@@ -1,0 +1,10 @@
+[build]
+  base = "project1/frontend"
+  command = "npm install --legacy-peer-deps && npm run build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "20"
+  CI = "false"
+  NODE_OPTIONS = "--openssl-legacy-provider"
+  REACT_APP_API_URL = "https://photo-app-ypru.onrender.com"
