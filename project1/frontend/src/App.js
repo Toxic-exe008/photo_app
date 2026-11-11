@@ -82,14 +82,22 @@ function App() {
             return;
         }
 
-        const photoData = new FormData();
-        photoData.append("title", title.trim());
-        photoData.append("description", description.trim());
+        let photoData;
 
         if (imageFile) {
+            photoData = new FormData();
+            photoData.append("title", title.trim());
+            photoData.append("description", description.trim());
             photoData.append("image", imageFile);
-        } else if (imageUrl.trim()) {
-            photoData.append("imageUrl", imageUrl.trim());
+        } else {
+            photoData = {
+                title: title.trim(),
+                description: description.trim()
+            };
+
+            if (imageUrl.trim()) {
+                photoData.imageUrl = imageUrl.trim();
+            }
         }
 
         try {
