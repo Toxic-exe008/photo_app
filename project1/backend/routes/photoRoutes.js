@@ -7,13 +7,14 @@ const Photo = require("../models/Photo");
 router.post("/", async (req, res) => {
     try {
         const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
+        const description = typeof req.body.description === "string" ? req.body.description.trim() : "";
         const imageUrl = typeof req.body.imageUrl === "string" ? req.body.imageUrl.trim() : "";
 
         if (!title || !imageUrl) {
             return res.status(400).json({ message: "Title and image URL are required" });
         }
 
-        const photo = await Photo.create({ title, imageUrl });
+        const photo = await Photo.create({ title, description, imageUrl });
         res.status(201).json(photo);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -35,6 +36,7 @@ router.put("/:id", async (req, res) => {
     try {
         const updates = {};
         if (typeof req.body.title === "string") updates.title = req.body.title.trim();
+        if (typeof req.body.description === "string") updates.description = req.body.description.trim();
         if (typeof req.body.imageUrl === "string") updates.imageUrl = req.body.imageUrl.trim();
 
         if (Object.keys(updates).length === 0) {

@@ -3,7 +3,15 @@ const mongoose = require("mongoose");
 const photoSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        maxlength: 100
+    },
+
+    description: {
+        type: String,
+        default: "",
+        maxlength: 500
     },
 
     imageUrl: {

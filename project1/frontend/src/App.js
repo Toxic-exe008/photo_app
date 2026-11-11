@@ -8,6 +8,7 @@ const API = `${API_ROOT.endsWith("/") ? API_ROOT.slice(0, -1) : API_ROOT}/api/ph
 function App() {
     const [photos, setPhotos] = useState([]);
     const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -38,7 +39,11 @@ function App() {
         setError("");
         setMessage("");
 
-        const photoData = { title: title.trim(), imageUrl: imageUrl.trim() };
+        const photoData = {
+            title: title.trim(),
+            description: description.trim(),
+            imageUrl: imageUrl.trim()
+        };
 
         try {
             if (editId) {
@@ -50,6 +55,7 @@ function App() {
             }
 
             setTitle("");
+            setDescription("");
             setImageUrl("");
             setEditId(null);
             await getPhotos();
@@ -61,6 +67,7 @@ function App() {
     //edit photo
     const handleEdit = (photo) => {
         setTitle(photo.title);
+        setDescription(photo.description || "");
         setImageUrl(photo.imageUrl);
         setEditId(photo._id);
         setMessage("");
@@ -85,6 +92,7 @@ function App() {
 
     const cancelEdit = () => {
         setTitle("");
+        setDescription("");
         setImageUrl("");
         setEditId(null);
     };
@@ -102,6 +110,14 @@ function App() {
                     onChange={(e) => setTitle(e.target.value)}
                     maxLength="100"
                     required
+                />
+
+                <textarea
+                    placeholder="Add a description (optional)"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    maxLength="500"
+                    rows="3"
                 />
 
                 <input
@@ -137,6 +153,7 @@ function App() {
                         <div className="card" key={photo._id}>
                             <img src={photo.imageUrl} alt={photo.title} loading="lazy" />
                             <h3>{photo.title}</h3>
+                            {photo.description && <p className="card-description">{photo.description}</p>}
                             <div className="card-actions">
                                 <button onClick={() => handleEdit(photo)}>Edit</button>
                                 <button
